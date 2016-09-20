@@ -1,6 +1,7 @@
 import requests
 import logging
 import sys
+import argparse
 
 FORMAT = "%(asctime)-15s - %(levelname)s - %(module)20s:%(lineno)-5d - %(message)s"
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=FORMAT)
@@ -38,9 +39,33 @@ def set_color(token, color, brightness, group=None):
     if group is None:
         LOG.info("Setting color for all lights --- {}".format(request))
         response = requests.put('https://api.lifx.com/v1/lights/all/state', data=request, headers=header)
-        LOG.debug("Set color response: {}".format(response))
+        LOG.info("Set color response: {}".format(response))
     else:
         LOG.info("Setting color for group:{} --- {}".format(group, request))
         response = requests.put('https://api.lifx.com/v1/lights/group:{}/state'.format(group), data=request,
                                 headers=header)
-        LOG.debug("Set color response: {}".format(response))
+        LOG.info("Set color response: {}".format(response))
+
+
+def parse_args():
+    LOG.info("Parsing Args")
+    parser = argparse.ArgumentParser(description='Lifx API for Lux')
+    parser.add_argument('-t', '--token', type=str, help='Authentication token for Lifx API')
+    parser.add_argument('-c', '--color', type=str, help='RGB color to set lights. Example: [#ffffff]')
+    parser.add_argument('-b', '--brightness', type=str, default="1.0",
+                        help='Brightness value to set lights. Range: [0.0 - 1.0]')
+    parser.add_argument('-g', '--group', type=str, nargs="?", help='Group of lights to set color. [Optional]')
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    LOG.info("\nRunning Lifx API script with args:\n\tColor: {}\n\tBrightness: {}\n\tGroup: {}".format(args.color,
+                                                                                                     args.brightness,
+                                                                                                     args.group))
+    set_color(args.token, args.color, args.brightness, args.group)
+    LOG.info("Done")
+
+
+if __name__ == "__main__":
+    main()
